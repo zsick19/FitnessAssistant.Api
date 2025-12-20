@@ -1,0 +1,1 @@
+public record FoodMealCategoriesPageResponseDto(IEnumerable<MealCategory> MealCategories);

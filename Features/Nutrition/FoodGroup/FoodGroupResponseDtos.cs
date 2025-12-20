@@ -1,0 +1,1 @@
+public record FoodGroupPageResponseDto(IEnumerable<FoodGroup> FoodGroups);
