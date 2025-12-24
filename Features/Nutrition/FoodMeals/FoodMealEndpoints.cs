@@ -15,11 +15,18 @@ public static class FoodMealEndpoints
 
     public static void MapFoodMealEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/", async (FitnessAssistantContext dbContext, [AsParameters] GetFoodMealSummaryPageRequestDto queryRequest) =>
+        app.MapGet("/", async (FitnessAssistantContext dbContext, [AsParameters] GetFoodMealSummaryPageRequestDto queryRequest, ClaimsPrincipal userClaim) =>
         {
             var skipCount = (queryRequest.pageNumber - 1) * queryRequest.pageSize;
 
-            var filteredMeals = dbContext.FoodMeals.Where(meal => string.IsNullOrWhiteSpace(queryRequest.searchMealName) || EF.Functions.Like(meal.Name, $"%{queryRequest.searchMealName}"));
+            var currentUserId = userClaim?.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+            var filteredMeals = dbContext.FoodMeals.AsQueryable();
+            if (queryRequest.searchByGuid && currentUserId != null) { filteredMeals = filteredMeals.Where(meal => meal.MealSubmitterId == new Guid(currentUserId)); }
+
+            filteredMeals = filteredMeals.Where(meal => string.IsNullOrWhiteSpace(queryRequest.searchMealName) || meal.Name.ToLower().Contains(queryRequest.searchMealName.ToLower()) || EF.Functions.Like(meal.Name,
+              $"%{queryRequest.searchMealName}"));
+
 
             var mealsOnPage = await filteredMeals.OrderBy(meal => meal.Name)
                 .Skip(skipCount)
@@ -47,8 +54,7 @@ public static class FoodMealEndpoints
         {
             if (!userClaim?.Identity?.IsAuthenticated == true) { return Results.Unauthorized(); }
 
-            var currentUserId = userClaim?.FindFirstValue(JwtRegisteredClaimNames.Email) ??
-                                userClaim?.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var currentUserId = userClaim?.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
             if (string.IsNullOrEmpty(currentUserId)) { return Results.Unauthorized(); }
 

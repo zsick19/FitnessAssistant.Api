@@ -24,7 +24,16 @@ public static class RawIngredientEndpoints
         app.MapGet("/", async (FitnessAssistantContext dbContext, [AsParameters] GetRawIngredientsRequestDto queryRequest) =>
         {
             var skipCount = (queryRequest.pageNumber - 1) * queryRequest.pageSize;
-            var filteredRawIngredients = dbContext.RawIngredients.Where(ingredient => string.IsNullOrWhiteSpace(queryRequest.searchName) || EF.Functions.Like(ingredient.Name, $"%{queryRequest.searchName}%"));
+
+            var filteredRawIngredients = dbContext.RawIngredients.AsQueryable();
+            if (queryRequest.searchCategory != null)
+            {
+                filteredRawIngredients = filteredRawIngredients.Where(rawIngredient => rawIngredient.FoodGroupId == new Guid(queryRequest.searchCategory));
+            }
+            if (queryRequest.searchName != null)
+            {
+                filteredRawIngredients = filteredRawIngredients.Where(ingredient => string.IsNullOrWhiteSpace(queryRequest.searchName) || ingredient.Name.ToLower().Contains(queryRequest.searchName.ToLower()) || EF.Functions.Like(ingredient.Name, $"%{queryRequest.searchName}%"));
+            }
 
             var ingredientsOnPage = await filteredRawIngredients.OrderBy(ingredient => ingredient.Name)
                 .Skip(skipCount)

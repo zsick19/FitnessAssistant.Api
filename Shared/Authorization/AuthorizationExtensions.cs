@@ -11,31 +11,31 @@ public static class AuthorizationExtensions
     {
 
         builder.Services.AddSingleton<KeyCloakClaimsTransformer>();
-        builder.Services.AddAuthentication()
+        builder.Services.AddAuthentication(Schemes.KeyCloak)
         .AddJwtBearer(
             options =>
             {
                 options.MapInboundClaims = false;
                 options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
+            })
+            .AddJwtBearer(Schemes.KeyCloak,
+            options =>
+            {
+                options.Authority = "http://localhost:8080/realms/FitnessAssistant";
+                options.Audience = "fitnessAssistant-backendApi";
+                options.MapInboundClaims = false;
+                options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
+                options.RequireHttpsMetadata = false;
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = context =>
+                    {
+                        var transformer = context.HttpContext.RequestServices.GetRequiredService<KeyCloakClaimsTransformer>();
+                        transformer.Transform(context);
+                        return Task.CompletedTask;
+                    }
+                };
             });
-        //     .AddJwtBearer(Schemes.KeyCloak,
-        //     options =>
-        //     {
-        //         options.Authority = "http://localhost:8080/realms/FitnessAssistant";
-        //         options.Audience = "fitnessAssistant-backendApi";
-        //         options.MapInboundClaims = false;
-        //         options.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
-        //         options.RequireHttpsMetadata = false;
-        //         options.Events = new JwtBearerEvents
-        //         {
-        //             OnTokenValidated = context =>
-        //             {
-        //                 var transformer = context.HttpContext.RequestServices.GetRequiredService<KeyCloakClaimsTransformer>();
-        //                 transformer.Transform(context);
-        //                 return Task.CompletedTask;
-        //             }
-        //         };
-        //     });
         return builder;
     }
 

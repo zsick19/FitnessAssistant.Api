@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-public record GetFoodMealSummaryPageRequestDto(int pageNumber = 1, int pageSize = 5, string? searchMealName = null);
+public record GetFoodMealSummaryPageRequestDto(int pageNumber = 1, int pageSize = 5, string? searchMealName = null, bool searchByGuid = false);
 
 
 

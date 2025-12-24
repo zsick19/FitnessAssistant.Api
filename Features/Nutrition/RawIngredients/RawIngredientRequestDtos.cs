@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 public record GetRawIngredientsRequestDto(
     int pageNumber = 1,
     int pageSize = 5,
-    string? searchName = null
+    string? searchName = null,
+    string? searchCategory = null
 );
 
 public record CreateRawIngredientReqDto(
