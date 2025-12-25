@@ -15,4 +15,6 @@ public class FoodMeal
 
     public NutritionContributor? MealSubmitter { get; set; }
     public required Guid MealSubmitterId { get; set; }
+
+    public int MostRecentMealCreationStage { get; set; } = 1;
 }
