@@ -490,3 +490,5 @@ appsettings.json
 appsettings.Development.json
 launchSettings.json
 FitnessAssistant.Api.csproj
+FitnessAssistance.db-shm
+FitnessAssistance.db-wal

@@ -1,4 +1,5 @@
 using FitnessAssistant.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 public static class InitializeNutritionEndpoints
 {
@@ -18,6 +19,9 @@ public static class InitializeNutritionEndpoints
         app.MapGet("/admin", async (FitnessAssistantContext dbContext) =>
         {
             //items to come from the db for prefetched nutrition admin login
+            var foundFoodGroups = await dbContext.FoodGroups.ToListAsync();
+            var foundFoodMealCategories = await dbContext.MealCategories.OrderBy(cat => cat.Name).ToListAsync();
+            return new AdminInitializeResponseDto(foundFoodGroups, foundFoodMealCategories);
         });
     }
 }
