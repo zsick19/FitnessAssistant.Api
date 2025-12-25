@@ -1,10 +1,14 @@
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using AutoMapper;
 using FitnessAssistant.Api.Data;
 using FitnessAssistant.Api.Shared.Authorization;
 using FitnessAssistant.Api.Shared.FileUpload;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace FitnessAssistant.Api.Features.Nutrition.FoodMeals;
 
@@ -93,10 +97,36 @@ public static class FoodMealEndpoints
 
         }).AllowAnonymous().DisableAntiforgery();
 
-        app.MapPut("/{id}", async (Guid id, FitnessAssistantContext dbContext) =>
+        app.MapPatch("/{FooMealId}", async (Guid FooMealId, FitnessAssistantContext dbContext, HttpRequest request, IMapper mapper,
+        FileUploader fileUploader, ClaimsPrincipal userClaim) =>
         {
+            if (!userClaim?.Identity?.IsAuthenticated == true) return Results.Unauthorized();
+            var currentUserId = userClaim?.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (string.IsNullOrEmpty(currentUserId)) return Results.Unauthorized();
 
-        });
+            var existingFoodMeal = await dbContext.FoodMeals.FindAsync(FooMealId);
+            if (existingFoodMeal == null) return Results.NotFound();
+
+            var form = await request.ReadFormAsync();
+            var body = form["patchDoc"];
+
+            var patchRequestBody = JsonConvert.DeserializeObject<JsonPatchDocument<UpdatePatchFoodMealRequestDto>>(body);
+            if (patchRequestBody == null) return Results.BadRequest();
+
+            var dtoToPatch = mapper.Map<UpdatePatchFoodMealRequestDto>(existingFoodMeal);
+            var errors = new List<ValidationResult>();
+            patchRequestBody.ApplyTo(dtoToPatch);
+            var context = new ValidationContext(dtoToPatch);
+
+            if (!Validator.TryValidateObject(dtoToPatch, context, errors, true))
+            {
+                return Results.ValidationProblem(errors.ToDictionary(e => e.MemberNames.First(), e => new[] { e.ErrorMessage })!);
+            }
+
+            var result = mapper.Map(dtoToPatch, existingFoodMeal);
+            await dbContext.SaveChangesAsync();
+            return Results.NoContent();
+        }).DisableAntiforgery();
 
         app.MapDelete("/{id}", async (Guid id, FitnessAssistantContext dbContext) =>
         {

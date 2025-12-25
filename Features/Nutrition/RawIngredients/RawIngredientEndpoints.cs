@@ -113,7 +113,8 @@ public static class RawIngredientEndpoints
 
         }).WithParameterValidation().DisableAntiforgery().AllowAnonymous();
 
-        app.MapPut("/{ingredientId}", async (FitnessAssistantContext dbContext, Guid ingredientId, [FromForm] UpdatePutRawIngredientReqDto updateRawIngredientReq, FileUploader fileUploader, ClaimsPrincipal userClaim) =>
+        app.MapPut("/{ingredientId}", async (FitnessAssistantContext dbContext, Guid ingredientId, 
+        [FromForm] UpdatePutRawIngredientReqDto updateRawIngredientReq, FileUploader fileUploader, ClaimsPrincipal userClaim) =>
         {
             if (!userClaim?.Identity?.IsAuthenticated == true) return Results.Unauthorized();
 

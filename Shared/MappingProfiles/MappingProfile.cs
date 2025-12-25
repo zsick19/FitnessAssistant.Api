@@ -8,5 +8,6 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<RawIngredient, UpdatePatchRawIngredientReqDto>().ReverseMap().ForMember(dest => dest.FoodGroup, opt => opt.Ignore());
+        CreateMap<FoodMeal, UpdatePatchFoodMealRequestDto>().ReverseMap();
     }
 }
