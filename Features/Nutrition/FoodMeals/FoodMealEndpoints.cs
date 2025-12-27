@@ -48,7 +48,7 @@ public static class FoodMealEndpoints
 
         app.MapGet("/{id}", async (Guid id, FitnessAssistantContext dbContext) =>
         {
-            FoodMeal? foundFoodMeal = await dbContext.FoodMeals.FindAsync(id);
+            FoodMeal? foundFoodMeal = await dbContext.FoodMeals.Include(p => p.MealIngredients).ThenInclude(c => c.RawIngredient).FirstOrDefaultAsync(p => p.Id == id);
 
             return foundFoodMeal is null ? Results.NotFound() : Results.Ok(foundFoodMeal);
 
@@ -67,7 +67,8 @@ public static class FoodMealEndpoints
                 Name = createFoodMealRequestDto.Name,
                 Description = createFoodMealRequestDto.Description,
                 MealCategoryId = createFoodMealRequestDto.MealCategoryId,
-                MealSubmitterId = new Guid("BDC3E978-10F3-42C0-A43C-353F8CB6B348")
+                MealSubmitterId = new Guid("BDC3E978-10F3-42C0-A43C-353F8CB6B348"),
+                MealIngredients = new List<MealIngredient>()
             };
 
             if (createFoodMealRequestDto.SubmissionPhotos is null || createFoodMealRequestDto.SubmissionPhotos?.Count == 0)
@@ -97,14 +98,14 @@ public static class FoodMealEndpoints
 
         }).AllowAnonymous().DisableAntiforgery();
 
-        app.MapPatch("/{FooMealId}", async (Guid FooMealId, FitnessAssistantContext dbContext, HttpRequest request, IMapper mapper,
+        app.MapPatch("/{FoodMealId}", async (Guid FoodMealId, FitnessAssistantContext dbContext, HttpRequest request, IMapper mapper,
         FileUploader fileUploader, ClaimsPrincipal userClaim) =>
         {
             if (!userClaim?.Identity?.IsAuthenticated == true) return Results.Unauthorized();
             var currentUserId = userClaim?.FindFirstValue(JwtRegisteredClaimNames.Sub);
             if (string.IsNullOrEmpty(currentUserId)) return Results.Unauthorized();
 
-            var existingFoodMeal = await dbContext.FoodMeals.FindAsync(FooMealId);
+            var existingFoodMeal = await dbContext.FoodMeals.Include(p => p.MealIngredients).FirstOrDefaultAsync(p => p.Id == FoodMealId);
             if (existingFoodMeal == null) return Results.NotFound();
 
             var form = await request.ReadFormAsync();

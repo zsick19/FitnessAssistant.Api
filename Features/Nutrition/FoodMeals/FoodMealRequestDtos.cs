@@ -41,5 +41,6 @@ public record UpdatePatchFoodMealRequestDto
 {
     public string? name { get; set; }
     public string? description { get; set; }
+    public List<MealIngredient>? mealIngredients { get; set; }
     public int? mostRecentMealCreationStage { get; set; }
 }
