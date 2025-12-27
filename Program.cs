@@ -35,6 +35,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor().AddSingleton<FileUploader>();
 
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+});
+
 
 builder.AddFitnessAssistantAuthentication();
 builder.AddFitnessAssistantAuthorization();

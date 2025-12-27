@@ -68,7 +68,6 @@ public static class FoodMealEndpoints
                 Description = createFoodMealRequestDto.Description,
                 MealCategoryId = createFoodMealRequestDto.MealCategoryId,
                 MealSubmitterId = new Guid("BDC3E978-10F3-42C0-A43C-353F8CB6B348"),
-                MealIngredients = new List<MealIngredient>()
             };
 
             if (createFoodMealRequestDto.SubmissionPhotos is null || createFoodMealRequestDto.SubmissionPhotos?.Count == 0)
