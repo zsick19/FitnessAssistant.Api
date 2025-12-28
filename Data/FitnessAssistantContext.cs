@@ -19,4 +19,15 @@ public class FitnessAssistantContext(DbContextOptions<FitnessAssistantContext> o
     public DbSet<FoodGroup> FoodGroups => Set<FoodGroup>();
     public DbSet<MealCategory> MealCategories => Set<MealCategory>();
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<FoodMeal>()
+            .HasMany(p=>p.MealIngredients)
+            .WithOne()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        base.OnModelCreating(modelBuilder);
+    }
+
+
 }

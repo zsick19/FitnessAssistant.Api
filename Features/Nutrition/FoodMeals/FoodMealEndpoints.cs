@@ -48,7 +48,7 @@ public static class FoodMealEndpoints
 
         app.MapGet("/{id}", async (Guid id, FitnessAssistantContext dbContext) =>
         {
-            FoodMeal? foundFoodMeal = await dbContext.FoodMeals.Include(p => p.MealIngredients).ThenInclude(c => c.RawIngredient).FirstOrDefaultAsync(p => p.Id == id);
+            FoodMeal? foundFoodMeal = await dbContext.FoodMeals.Include(p => p.MealIngredients.OrderBy(c => c.RawIngredient!.Name)).ThenInclude(c => c.RawIngredient).FirstOrDefaultAsync(p => p.Id == id);
 
             return foundFoodMeal is null ? Results.NotFound() : Results.Ok(foundFoodMeal);
 
