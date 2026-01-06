@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using AutoMapper;
 using FitnessAssistant.Api.Data;
+using FitnessAssistant.Api.Features.Users.Constants;
 using FitnessAssistant.Api.Shared.Authorization;
 using FitnessAssistant.Api.Shared.FileUpload;
 using Microsoft.AspNetCore.JsonPatch;
@@ -96,6 +97,44 @@ public static class FoodMealEndpoints
             return Results.CreatedAtRoute(GetFoodMeal, new { id = createdFoodMeal.Id }, createdFoodMeal.FoodMealToDetailedResDto());
 
         }).AllowAnonymous().DisableAntiforgery();
+
+        app.MapPut("/{foodMealId}", async (FitnessAssistantContext dbContext, Guid foodMealId, HttpContext context,
+        [FromForm] UpdatePutPhotosFoodMealReqDto foodMealPhotoUpdateReqDto, FileUploader fileUploader, ClaimsPrincipal userClaim) =>
+        {
+
+
+            if (!userClaim?.Identity?.IsAuthenticated == true) return Results.Unauthorized();
+
+            var currentUserId = userClaim?.FindFirstValue(JwtRegisteredClaimNames.Email) ?? 
+            userClaim?.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (string.IsNullOrEmpty(currentUserId)) return Results.Unauthorized();
+            
+            var existingFoodMeal=await dbContext.FoodMeals.FindAsync(foodMealId);
+            if (existingFoodMeal is null) { return Results.NotFound(); }
+
+            var imageUri = existingFoodMeal.FinishedMealImageUri;
+            if(existingFoodMeal.FinishedMealImageUri is null)
+            {
+                imageUri=new List<string>();
+            }
+            
+            if (foodMealPhotoUpdateReqDto.Images is not null)
+            {
+                foreach (IFormFile imageToUpload in foodMealPhotoUpdateReqDto.Images)
+                {
+                var fileUploadResult = await fileUploader.UploadFileAsync(imageToUpload, StorageNames.FoodMealImageFolder);
+                if (!fileUploadResult.IsSuccess){return Results.BadRequest(new { message = fileUploadResult.ErrorMessage });}
+                imageUri.Add(fileUploadResult.FileUrl!);
+                }
+            }
+            
+            await dbContext.SaveChangesAsync();
+            return Results.NoContent();
+
+        }).WithParameterValidation().DisableAntiforgery();
+
+
+
 
         app.MapPatch("/{FoodMealId}", async (Guid FoodMealId, FitnessAssistantContext dbContext, HttpRequest request, IMapper mapper,
         FileUploader fileUploader, ClaimsPrincipal userClaim) =>

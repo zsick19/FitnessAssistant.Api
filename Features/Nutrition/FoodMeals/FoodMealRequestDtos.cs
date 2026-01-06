@@ -56,4 +56,7 @@ public record UpdatePatchFoodMealRequestDto
     public PlateSize? LargePlateSize{get;set;}
     public PlateSize? SmallPlateSize{get;set;}
     public PlateSize? BowlSize{get;set;}
+    public List<string>? Instructions{get;set;}
 }
+
+public record UpdatePutPhotosFoodMealReqDto([Required] IFormFileCollection Images);

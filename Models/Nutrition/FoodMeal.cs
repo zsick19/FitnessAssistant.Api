@@ -25,7 +25,7 @@ public class FoodMeal
     public PlateSize SmallPlateSize{get;set;}
     public PlateSize BowlSize{get;set;}
 
-
+    public List<string> Instructions{get;set;}=[];
 
     public NutritionContributor? MealSubmitter { get; set; }
     public required Guid MealSubmitterId { get; set; }
